@@ -46,18 +46,22 @@ class PSO:
 
     # Step population by num_step steps
     def step(self):
+        # Generate two random numbers
         rand_1 = np.random.random(self.position.shape[1])
         rand_2 = np.random.random(self.position.shape[1])
-
+        
+        # Determine particle velocities for this step
         self.velocity = self.inertia * self.velocity +\
             self.cognition * rand_1 * (self.pbest - self.position) +\
             self.social * rand_2 * (self.gbest.reshape(self.gbest.size, 1) - self.position)
-
+        
+        # correct particle velocities if they are beyond the max allowed
         v_sum_sqr = np.sum(np.power(self.velocity, 2), 0)
         for i, v in enumerate(v_sum_sqr):
             if v > pow(self.max_velocity, 2):
                 self.velocity[:, i] = (self.max_velocity / sqrt(v)) * self.velocity[:, i]
 
+        # Update particle positions
         self.position = self.position + self.velocity
 
         self.update_bests()
@@ -93,6 +97,7 @@ class PSO:
         return epoch + 1
 
 
+# Optimization function 1
 def q1(pos, max_pos):
     mdist = sqrt(pow(max_pos[0], 2) + pow(max_pos[1], 2)) / 2
     pdist = sqrt(pow((pos[0] - 20), 2) + pow((pos[1] - 7), 2))
@@ -100,6 +105,7 @@ def q1(pos, max_pos):
     return 100 * (1 - pdist/mdist)
 
 
+# Optimization function 2
 def q2(pos, max_pos):
     mdist = sqrt(pow(max_pos[0], 2) + pow(max_pos[1], 2)) / 2
     pdist = sqrt(pow((pos[0] - 20), 2) + pow((pos[1] - 7), 2))
@@ -114,11 +120,9 @@ if __name__ == '__main__':
 
     f = q1
     p = 50
-
-    frame_base = 50
-    frame_steps = 3
-    frames = frame_base * frame_steps
-
+    frames = 150
+    
+    # create base contour map
     print('Creating contour map')
     x = np.linspace(-50, 50, 100, endpoint=True)
     y = np.linspace(-50, 50, 100, endpoint=True)
@@ -146,7 +150,8 @@ if __name__ == '__main__':
         pso.step()
         scatter.set_offsets(pso.position.transpose())
         return scatter,
-
+    
+    # Create PSO Animation
     print('Animating PSO')
     anim = FuncAnimation(fig, animate, init_func=init, blit=True, frames=frames, interval=20)
 
